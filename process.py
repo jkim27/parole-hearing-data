@@ -1,10 +1,11 @@
 import re, time, csv, datetime
 import os, sys
 import prison_list
-from scrape import get_existing_parolees 
+
+import parole_hearing_utils as utils
 
 def format_date(date):
-  if int(date) <= 50:
+  if int(date) <= 20:
     date = 2000 + int(date)
     return date
   elif int(date) > 50 and int(date) < 100:
@@ -57,7 +58,17 @@ def simplify_outcomes(parolee):
       'RCND&RELSE': 'ambiguous',
       'OR EARLIER': 'ambiguous'
       }
-
   parolee_decision = parolee['interview decision']
-  parolee['interview decision category'] = decisions[parolee_decision]
+  if parolee_decision in decisions.keys():
+      parolee['interview decision category'] = decisions[parolee_decision]
+  else:
+      parolee['interview decision category'] = None
   return parolee
+
+
+parolees = utils.get_existing_parolees("data.csv")
+for k, v in parolees.iteritems():
+    parolees[k] = get_year_of_entry(v)
+    parolees[k] = simplify_outcomes(v)
+
+utils.print_data(parolees.values(), out_file = "data.csv")
